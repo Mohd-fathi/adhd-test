@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>اختبار ADHD المتقدم</title>
+
+<style>
+body {
+    font-family: 'Tahoma', sans-serif;
+    direction: rtl;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    text-align: center;
+}
+
+.container {
+    width: 70%;
+    margin: auto;
+    background: white;
+    color: black;
+    padding: 30px;
+    border-radius: 15px;
+    margin-top: 40px;
+}
+
+h2 {
+    color: #2a5298;
+}
+
+button {
+    padding: 12px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    background: #2a5298;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1e3c72;
+}
+
+.progress {
+    width: 100%;
+    background: #ddd;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.progress-bar {
+    height: 10px;
+    background: #2a5298;
+    width: 0%;
+    border-radius: 10px;
+}
+
+.result {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+.footer {
+    margin-top: 30px;
+    font-size: 14px;
+    color: gray;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>اختبار ADHD المتقدم</h2>
+
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="quiz"></div>
+    <div class="result" id="result"></div>
+
+    <button onclick="downloadPDF()" id="pdfBtn" style="display:none;">تحميل التقرير PDF</button>
+
+    <div class="footer">
+        تصميم mohd - fathi
+    </div>
+</div>
+
+<script>
+const questions = [
+{q:"صعوبة في التركيز لفترة طويلة", type:"focus"},
+{q:"نسيان المهام اليومية", type:"focus"},
+{q:"التشتت بسهولة", type:"focus"},
+{q:"عدم تنظيم الوقت", type:"focus"},
+{q:"تأجيل المهام", type:"focus"},
+
+{q:"مقاطعة الآخرين", type:"impulsive"},
+{q:"التصرف بدون تفكير", type:"impulsive"},
+{q:"صعوبة انتظار الدور", type:"impulsive"},
+
+{q:"حركة زائدة أثناء الجلوس", type:"hyper"},
+{q:"الشعور بعدم الراحة المستمرة", type:"hyper"}
+];
+
+let current = 0;
+let scores = {focus:0, impulsive:0, hyper:0};
+
+function loadQuestion() {
+    updateProgress();
+
+    if (current < questions.length) {
+        document.getElementById("quiz").innerHTML = `
+            <h3>${questions[current].q}</h3>
+            <button onclick="answer(3)">دائمًا</button>
+            <button onclick="answer(2)">أحيانًا</button>
+            <button onclick="answer(1)">نادراً</button>
+            <button onclick="answer(0)">أبداً</button>
+        `;
+    } else {
+        showResult();
+    }
+}
+
+function answer(value) {
+    scores[questions[current].type] += value;
+    current++;
+    loadQuestion();
+}
+
+function updateProgress() {
+    let percent = (current / questions.length) * 100;
+    document.getElementById("progressBar").style.width = percent + "%";
+}
+
+function showResult() {
+    let total = scores.focus + scores.impulsive + scores.hyper;
+
+    let level = "";
+    if (total >= 20) level = "مرتفع";
+    else if (total >= 10) level = "متوسط";
+    else level = "منخفض";
+
+    let analysis = `
+    <b>النتيجة:</b> ${level} <br><br>
+    🔹 التركيز: ${scores.focus} <br>
+    🔹 الاندفاع: ${scores.impulsive} <br>
+    🔹 فرط الحركة: ${scores.hyper} <br><br>
+    ⚠️ هذه نتيجة مبدئية وليست تشخيص طبي
+    `;
+
+    document.getElementById("quiz").innerHTML = "";
+    document.getElementById("result").innerHTML = analysis;
+
+    localStorage.setItem("adhd_result", analysis);
+
+    document.getElementById("pdfBtn").style.display = "inline-block";
+}
+
+function downloadPDF() {
+    let content = localStorage.getItem("adhd_result");
+
+    let win = window.open('', '', 'height=700,width=700');
+    win.document.write('<html><head><title>تقرير ADHD</title></head><body>');
+    win.document.write('<h2>تقرير نتيجة اختبار ADHD</h2>');
+    win.document.write(content);
+    win.document.write('<br><br><small>تصميم mohd - fathi</small>');
+    win.document.write('</body></html>');
+    win.document.close();
+    win.print();
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
